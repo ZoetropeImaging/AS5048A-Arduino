@@ -109,8 +109,8 @@ int AS5048A::getRotation(){
  * Returns an angular binary 14 bit angular value (DEC 16383)
  * Angle output value including zero offset.
  */
-word AS5048A::getRawRotation(bool EnableMedianValue){
-  return AS5048A::read(AS5048A_ANGLE, EnableMedianValue);
+word AS5048A::getRawRotation(bool EnableMedianValue = false, byte NumberFunctionValues = 16){
+  return AS5048A::read(AS5048A_ANGLE, EnableMedianValue, NumberFunctionValues);
 }
 
 /**
@@ -134,32 +134,57 @@ void AS5048A::AbsoluteAngleRotation (float *RotationAngle, float *AngleCurrent, 
 
   if (*AngleCurrent != *AnglePrevious){
     //a circle is made to increase from 360 to 1
-        if ((*AngleCurrent < 90) && (*AnglePrevious > 270) /*|| 
-    (*AngleCurrent < 1.5707963267948966192313216916398) && (*AnglePrevious > 4.7123889803846898576939650749193) */){
-            *RotationAngle += abs(360 - abs(*AngleCurrent - *AnglePrevious));
-      _reverse = true;
-    }  
+    if ((*AngleCurrent < 90) && (*AnglePrevious > 270) /*|| (*AngleCurrent < 1.5707963267948966192313216916398) && (*AnglePrevious > 4.7123889803846898576939650749193) */){
+        *RotationAngle += abs(360 - abs(*AngleCurrent - *AnglePrevious));
+        _reverse = true;
+    }
     //the circle is made to decrease from 1 to 360
-        if ((*AnglePrevious < 90) && (*AngleCurrent > 270) /*|| 
-    (*AnglePrevious < 1.5707963267948966192313216916398) && (*AngleCurrent > 4.7123889803846898576939650749193) */){
-            *RotationAngle -= abs(360 - abs(*AngleCurrent - *AnglePrevious));
-      _reverse = false;
+    if ((*AnglePrevious < 90) && (*AngleCurrent > 270) /*|| (*AnglePrevious < 1.5707963267948966192313216916398) && (*AngleCurrent > 4.7123889803846898576939650749193) */){
+        *RotationAngle -= abs(360 - abs(*AngleCurrent - *AnglePrevious));
+        _reverse = false;
     }
         //ascending circle
-        if (*AngleCurrent > *AnglePrevious && ((*AngleCurrent < 90) && (*AnglePrevious > 270))!=true && ((*AnglePrevious < 90) && (*AngleCurrent > 270))!=true /*||
-    *AngleCurrent > *AnglePrevious && ((*AngleCurrent < 1.5707963267948966192313216916398) && (*AnglePrevious > 4.7123889803846898576939650749193))!=true && ((*AnglePrevious < 1.5707963267948966192313216916398) && (*AngleCurrent > 4.7123889803846898576939650749193))!=true*/){
-            *RotationAngle += abs(*AngleCurrent - *AnglePrevious);
-      _reverse = true;
-    } 
+    if (*AngleCurrent > *AnglePrevious && ((*AngleCurrent < 90) && (*AnglePrevious > 270))!=true && ((*AnglePrevious < 90) && (*AngleCurrent > 270))!=true /*|| *AngleCurrent > *AnglePrevious && ((*AngleCurrent < 1.5707963267948966192313216916398) && (*AnglePrevious > 4.7123889803846898576939650749193))!=true && ((*AnglePrevious < 1.5707963267948966192313216916398) && (*AngleCurrent > 4.7123889803846898576939650749193))!=true*/){
+        *RotationAngle += abs(*AngleCurrent - *AnglePrevious);
+        _reverse = true;
+    }
         //descending circle
-        if (*AnglePrevious > *AngleCurrent && ((*AngleCurrent < 90) && (*AnglePrevious > 270))!=true && ((*AnglePrevious < 90) && (*AngleCurrent > 270))!=true /*||
-    *AnglePrevious > *AngleCurrent && ((*AngleCurrent < 1.5707963267948966192313216916398) && (*AnglePrevious > 4.7123889803846898576939650749193))!=true && ((*AnglePrevious < 1.5707963267948966192313216916398) && (*AngleCurrent > 4.7123889803846898576939650749193))!=true*/){
-            *RotationAngle -= abs(*AnglePrevious - *AngleCurrent);
-      _reverse = false;
-    }   
+    if (*AnglePrevious > *AngleCurrent && ((*AngleCurrent < 90) && (*AnglePrevious > 270))!=true && ((*AnglePrevious < 90) && (*AngleCurrent > 270))!=true /*|| *AnglePrevious > *AngleCurrent && ((*AngleCurrent < 1.5707963267948966192313216916398) && (*AnglePrevious > 4.7123889803846898576939650749193))!=true && ((*AnglePrevious < 1.5707963267948966192313216916398) && (*AngleCurrent > 4.7123889803846898576939650749193))!=true*/){
+        *RotationAngle -= abs(*AnglePrevious - *AngleCurrent);
+        _reverse = false;
+    }  
   }
 
     *AnglePrevious = *AngleCurrent;   
+}
+
+float AS5048A::AbsoluteAngleRotation (float *RotationAngle, float AngleCurrent, float *AnglePrevious){
+
+  if (AngleCurrent != *AnglePrevious){
+    //a circle is made to increase from 360 to 1
+    if ((AngleCurrent < 90) && (*AnglePrevious > 270)){
+        *RotationAngle += abs(360 - abs(AngleCurrent - *AnglePrevious));
+    }
+
+    //the circle is made to decrease from 1 to 360
+    if ((*AnglePrevious < 90) && (AngleCurrent > 270)){
+        *RotationAngle -= abs(360 - abs(AngleCurrent - *AnglePrevious));
+    }
+
+    //ascending circle
+    if (AngleCurrent > *AnglePrevious && ((AngleCurrent < 90) && (*AnglePrevious > 270))!=true && ((*AnglePrevious < 90) && (AngleCurrent > 270))!=true){
+        *RotationAngle += abs(AngleCurrent - *AnglePrevious);
+    }
+
+    //descending circle
+    if (*AnglePrevious > AngleCurrent && ((AngleCurrent < 90) && (*AnglePrevious > 270))!=true && ((*AnglePrevious < 90) && (AngleCurrent > 270))!=true){
+        *RotationAngle -= abs(*AnglePrevious - AngleCurrent);
+    }
+  }
+
+    *AnglePrevious = AngleCurrent;
+
+    return *RotationAngle;
 }
 
 /**
@@ -188,6 +213,10 @@ float AS5048A::GetAngularSeconds (float AngleAbsolute){
 float AS5048A::LinearDisplacementRack ( float WheelRotationAngle, float NormalModule, float NumberGearTeeth){
   return WheelRotationAngle * (( ( (PI * NormalModule) / cos(radians(20)) ) * NumberGearTeeth) / 360);
 } 
+
+float AS5048A::LinearDisplacementRack ( float WheelRotationAngle, float NormalModule, float NumberGearTeeth, float AngleTiltTooth = 20){
+  return WheelRotationAngle * (( ( (PI * NormalModule) / cos(radians(AngleTiltTooth)) ) * NumberGearTeeth) / 360);
+}
 
 /**
 *returns the movement of the screw in mm
