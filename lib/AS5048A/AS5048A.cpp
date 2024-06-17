@@ -411,9 +411,12 @@ bool AS5048A::error(){
  * Returns the value of the register
  * Sending a command to read AS5048A sensor registers
  */
-word AS5048A::read(word RegisterAddress, bool MeanValueMedian){
+word AS5048A::read(word RegisterAddress, bool MeanValueMedian, byte NumberFunctionValues){
   word readdata;
-  word array_data[16];
+  if (NumberFunctionValues <= 0){
+    NumberFunctionValues = 1;
+  }
+  word array_data[NumberFunctionValues];
   word command = 0b0100000000000000; // PAR=0 R/W=R
   
   command |= RegisterAddress;
@@ -437,20 +440,28 @@ word AS5048A::read(word RegisterAddress, bool MeanValueMedian){
   #endif
   
   //Send the command and Now read the response
-  if (MeanValueMedian == true){
-  
-    for ( byte i = 0; i < 16; i++){
+  if (MeanValueMedian == true){  
+
+    for ( byte i = 0; i < NumberFunctionValues-1; i++){ //(sizeof(array_data) / sizeof(array_data[0]))
       digitalWrite(_cs, LOW);
       array_data[i] = SPI.transfer16(command) & ~0xC000;
       digitalWrite(_cs, HIGH);
-      //Serial.println(array_data[i], BIN);   
+      //Serial.println(array_data[i], BIN);
     }
-
-    AS5048A::quickSort(array_data, 0, 15);
-    readdata = ( array_data[8]  + array_data[9]  ) / 2 ;  
     
     SPI.endTransaction();
     //SPI - end transaction
+
+    quickSort(array_data, 0, NumberFunctionValues-1 );
+    if (NumberFunctionValues > 1){
+      if((NumberFunctionValues % 2) > 0 ){
+        readdata = (array_data[(NumberFunctionValues / 2)-1] + array_data[NumberFunctionValues / 2]  + array_data[(NumberFunctionValues / 2)+1]  ) / 3 ;
+      }else{
+        readdata = ( array_data[(NumberFunctionValues / 2)-1]  + array_data[NumberFunctionValues / 2] ) / 2 ;
+      }
+    }else{
+      readdata = array_data[0] ;
+    }
     
     //Return the data, stripping the parity and error bits
     return readdata;  
