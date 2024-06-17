@@ -2,9 +2,10 @@
 #define as5048_h
 #define LIBRARY_VERSION 1.0.1
 
+#include <Arduino.h>
 #include <SPI.h>
-//#include <math.h>
 
+//#include <math.h>
 //#include <stdio.h> 
 //#include <stdlib.h>   
 
@@ -47,8 +48,10 @@ class AS5048A{
    * MeaValueMedian allows you to find the median average of 16 measurements because
    * after 16 CLK cycles, CSn must be returned to a high state in order to reset
    * some parts of the kernel interface.
+   * Meanvaluemedian to enable the median average mode
+   * NumberfunctionValues ​​number of measurements for the median average mode
    */
-  word read(word RegisterAddress, bool MeanValueMedian = false);
+  word read(word RegisterAddress, bool MeanValueMedian = false, byte NumberFunctionValues = 16);
 
   /**
    * Write to a register
@@ -69,7 +72,7 @@ class AS5048A{
   /**
    * Returns the raw angle directly from the sensor
    */
-  word getRawRotation(bool EnableMedianValue = false);
+  word getRawRotation(bool EnableMedianValue = false, byte NumberFunctionValues = 16);
 
   /**
    * Returns the physical quantity in angular degrees, obtained from a binary 14 bit ADC number
@@ -85,6 +88,11 @@ class AS5048A{
   * Returns the incremental and decrementing rotation angle in the variable RotationAngle. The variable addresses are passed to the procedure. 
   */
   void AbsoluteAngleRotation (float *RotationAngle, float *AngleCurrent, float *AnglePrevious);
+
+  /**
+  * Returns the incremental and deck angle of rotation to the variation variable to the procedure are transmitted addresses of variables
+  */
+  float AbsoluteAngleRotation (float *RotationAngle, float AngleCurrent, float *AnglePrevious);
 
   /**
   * Function to sort ascending
@@ -110,6 +118,16 @@ class AS5048A{
   *20 - the angle of the tooth
   */ 
   float LinearDisplacementRack ( float WheelRotationAngle, float NormalModule, float NumberGearTeeth);
+
+  /**
+  *Returns the movement of the spur gear in mm
+  *WheelRotationAngle - Angle of rotation of the wheel
+  *NormalModule - normal gear module
+  *NumberGearTeeth - The number of wheel teeth (gears) or the number of worm hits
+  *(PI * NormalModule) - Front Pitch
+  *20 - the angle of the tooth
+  */
+  float LinearDisplacementRack ( float WheelRotationAngle, float NormalModule, float NumberGearTeeth, float AngleTiltTooth);
   
   /**
   *Returns the movement of the screw in mm
