@@ -107,7 +107,7 @@ int AS5048A::getRotation(){
  * Returns an angular binary 14 bit angular value (DEC 16383)
  * Angle output value including zero offset.
  */
-word AS5048A::getRawRotation(bool EnableMedianValue = false, byte NumberFunctionValues = 16){
+word AS5048A::getRawRotation(bool EnableMedianValue, byte NumberFunctionValues){
   return AS5048A::read(AS5048A_ANGLE, EnableMedianValue, NumberFunctionValues);
 }
 
